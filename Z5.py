@@ -95,7 +95,7 @@ x, y = generate_data(l)
 
 # In[8]:
 
-def draw(x, y, x2=None, y2=None, connect=None, circle=None, p_lim=6):
+def draw(x, y, x2=None, y2=None, connect=None, connect2=None, circle=None, p_lim=6):
 
     # Устанавливаем размеры графика и разрешение
     plt.figure(figsize=(draw.size, draw.size), dpi=draw.dpi)
@@ -114,7 +114,7 @@ def draw(x, y, x2=None, y2=None, connect=None, circle=None, p_lim=6):
                     plt.plot(rx, ry, 'r--', color='gray')
                     ap.append((i, v-1))
                     
-    # Если необходимо - дополнительно соединяем указанные точки
+    # Если необходимо - дополнительно соединяем указанные точки (ряд1)
     if connect:
         ap = []
         for v in connect:
@@ -136,6 +136,30 @@ def draw(x, y, x2=None, y2=None, connect=None, circle=None, p_lim=6):
                             rx.append(x[w])
                             ry.append(y[w])
                         plt.plot(rx, ry, 'r-.', color='teal')
+                        ap.append((v, w))
+        
+    # Если необходимо - дополнительно соединяем указанные точки (ряд2)
+    if connect2:
+        ap = []
+        for v in connect2:
+            for w in connect2:
+                if (w != v) and ((w, v) not in ap) and ((v, w) not in ap):
+                    if type(v) != tuple or type(w) != tuple:
+                        rx = []
+                        ry = []
+                        if type(v) == tuple:
+                            rx.append(v[0])
+                            ry.append(v[1])
+                        else:
+                            rx.append(x[v])
+                            ry.append(y[v])
+                        if type(w) == tuple:
+                            rx.append(w[0])
+                            ry.append(w[1])
+                        else:
+                            rx.append(x[w])
+                            ry.append(y[w])
+                        plt.plot(rx, ry, 'r-.', color='brown')
                         ap.append((v, w))
     
     # Если необходимо - дополнительно строим окружности с заданными параметрами
@@ -262,8 +286,20 @@ def get_center(x1, y1, x2, y2, x3, y3):
 
 # In[12]:
 
-def find_vertex(a, b, c, d):
+def find_vertex(a, b, c, d, eps=0.000001):
     # Находим 2 решения системы уравнений
+    
+    # Точки совпали
+    if abs(b-d) < eps and abs(b-d) < eps:
+        raise ArithmeticException('FindVertex: a == b == c == d')
+    
+    # Вырожденный случай: b == d
+    if abs(b-d) < eps:
+        rx = (a + c) / 2.0
+        r1y = 1.0 / 2 * (2 * d - sqrt(3) * sqrt((a - c)**2)) 
+        r2y = 1.0 / 2 * (sqrt(3) * sqrt((a - c)**2) + 2 * d)
+        return [rx, rx], [r1y, r2y]
+    
     r1x = 1.0/2 * (a - sqrt(3) * sqrt((b - d)**2) + c)
     r1y = (sqrt(3) * a * sqrt((b - d)**2) + b**2 - sqrt(3) * c * sqrt((b - d)**2) - d**2) / (2.0 * (b - d))
     r2x = 1.0/2 * (a + sqrt(3) * sqrt((b - d)**2) + c)
@@ -322,11 +358,11 @@ def is_intersect(ax1, ay1, ax2, ay2, bx1, by1, bx2, by2):
 
 def find_intersection(a, b, c, d, e, f, r, eps=0.001):
     # Находим перое решение системы уравнений:
-    rx1 = (-sqrt(-(c - e)**2 *                  (a**2 * d**2 - 2 * a**2 * d * f + a**2 * f**2 - 2 * a * b * c * d + 2 * a * b * c * f +                   2 * a * b * d * e - 2 * a * b * e * f + 2 * a * c * d * f - 2 * a * c * f**2 -                   2 * a * d**2 * e + 2 * a * d * e * f + b**2 * c**2 - 2 * b**2 * c * e +                   b**2 * e**2 - 2 * b * c**2 * f + 2 * b * c * d * e + 2 * b * c * e * f -                   2 * b * d * e**2 + c**2 * f**2 - c**2 * r**2 - 2 * c * d * e * f + 2 * c * e * r**2                   + d**2 * e**2 - d**2 * r**2 + 2 * d * f * r**2 - e**2 * r**2 - f**2 * r**2)) +            a * c**2 - 2 * a * c * e + a * e**2 + b * c * d - b * c * f - b * d * e + b * e * f -            c * d * f + c * f**2 + d**2 * e - d * e * f)/(c**2 - 2 * c * e + d**2 - 2 * d * f + e**2 + f**2)
-    ry1 = (-d * sqrt(-(c - e)**2 *                      (a**2 * d**2 - 2 * a**2 * d * f + a**2 * f**2 - 2 * a * b * c * d +                       2 * a * b * c * f + 2 * a * b * d * e - 2 * a * b * e * f + 2 * a * c * d * f -                       2 * a * c * f**2 - 2 * a * d**2 * e + 2 * a * d * e * f + b**2 * c**2 -                       2 * b**2 * c * e + b**2 * e**2 - 2 * b * c**2 * f + 2 * b * c * d * e +                       2 * b * c * e * f - 2 * b * d * e**2 + c**2 * f**2 - c**2 * r**2 -                       2 * c * d * e * f + 2 * c * e * r**2 + d**2 * e**2 - d**2 * r**2 +                       2 * d * f * r**2 - e**2 * r**2 - f**2 * r**2)) +            f * sqrt(-(c - e)**2 * (a**2 * d**2 - 2 * a**2 * d * f + a**2 * f**2 -                                    2 * a * b * c * d + 2 * a * b * c * f + 2 * a * b * d * e -                                    2 * a * b * e * f + 2 * a * c * d * f - 2 * a * c * f**2 -                                    2 * a * d**2 * e + 2 * a * d * e * f + b**2 * c**2 -                                    2 * b**2 * c * e + b**2 * e**2 - 2 * b * c**2 * f + 2 * b * c * d * e +                                    2 * b * c * e * f - 2 * b * d * e**2 +                                    c**2 * f**2 - c**2 * r**2 - 2 * c * d * e * f + 2 * c * e * r**2 +                                    d**2 * e**2 - d**2 * r**2 + 2 * d * f * r**2 - e**2 * r**2 - f**2 * r**2))            + a * c**2 * d - a * c**2 * f - 2 * a * c * d * e + 2 * a * c * e * f + a * d * e**2 -            a * e**2 * f + b * c * d**2 - 2 * b * c * d * f + b * c * f**2 - b * d**2 * e + 2 * b * d * e * f            - b * e * f**2 + c**3 * f - c**2 * d * e - 2 * c**2 * e * f + 2 * c * d * e**2 + c * e**2 * f -            d * e**3) / ((c - e) * (c**2 - 2 * c * e + d**2 - 2 * d * f + e**2 + f**2))
+    rx1 = (-sqrt(-(c - e)**2 *                  (a**2 * d**2 - 2 * a**2 * d * f + a**2 * f**2 -                   2 * a * b * c * d + 2 * a * b * c * f +                   2 * a * b * d * e - 2 * a * b * e * f +                   2 * a * c * d * f - 2 * a * c * f**2 -                   2 * a * d**2 * e + 2 * a * d * e * f +                   b**2 * c**2 - 2 * b**2 * c * e +                   b**2 * e**2 - 2 * b * c**2 * f +                   2 * b * c * d * e + 2 * b * c * e * f -                   2 * b * d * e**2 + c**2 * f**2 - c**2 * r**2                   - 2 * c * d * e * f + 2 * c * e * r**2                   + d**2 * e**2 - d**2 * r**2 +                   2 * d * f * r**2 - e**2 * r**2 - f**2 * r**2)) +            a * c**2 - 2 * a * c * e + a * e**2 + b * c * d -            b * c * f - b * d * e + b * e * f -            c * d * f + c * f**2 + d**2 * e -            d * e * f)/(c**2 - 2 * c * e + d**2 -                        2 * d * f + e**2 + f**2)
+    ry1 = (-d * sqrt(-(c - e)**2 *                      (a**2 * d**2 - 2 * a**2 * d * f +                       a**2 * f**2 - 2 * a * b * c * d +                       2 * a * b * c * f + 2 * a * b * d * e -                       2 * a * b * e * f + 2 * a * c * d * f -                       2 * a * c * f**2 - 2 * a * d**2 * e +                       2 * a * d * e * f + b**2 * c**2 -                       2 * b**2 * c * e + b**2 * e**2 -                       2 * b * c**2 * f + 2 * b * c * d * e +                       2 * b * c * e * f - 2 * b * d * e**2 +                       c**2 * f**2 - c**2 * r**2 -                       2 * c * d * e * f + 2 * c * e * r**2 +                       d**2 * e**2 - d**2 * r**2 +                       2 * d * f * r**2 - e**2 * r**2 - f**2 * r**2)) +            f * sqrt(-(c - e)**2 * (a**2 * d**2 - 2 * a**2 * d * f +                                    a**2 * f**2 - 2 * a * b * c * d +                                    2 * a * b * c * f + 2 * a * b * d * e -                                    2 * a * b * e * f + 2 * a * c * d * f -                                    2 * a * c * f**2 - 2 * a * d**2 * e +                                    2 * a * d * e * f + b**2 * c**2 -                                    2 * b**2 * c * e + b**2 * e**2 -                                    2 * b * c**2 * f + 2 * b * c * d * e +                                    2 * b * c * e * f - 2 * b * d * e**2 +                                    c**2 * f**2 - c**2 * r**2 -                                    2 * c * d * e * f + 2 * c * e * r**2 +                                    d**2 * e**2 - d**2 * r**2 +                                    2 * d * f * r**2 - e**2 * r**2 - f**2 * r**2))            + a * c**2 * d - a * c**2 * f - 2 * a * c * d * e +            2 * a * c * e * f + a * d * e**2 - a * e**2 * f +            b * c * d**2 - 2 * b * c * d * f + b * c * f**2 -            b * d**2 * e + 2 * b * d * e * f - b * e * f**2 +            c**3 * f - c**2 * d * e - 2 * c**2 * e * f +            2 * c * d * e**2 + c * e**2 * f -            d * e**3) / ((c - e) * (c**2 - 2 * c * e +                                    d**2 - 2 * d * f + e**2 + f**2))
     # Второе решение:
-    rx2 = (sqrt(-(c - e)**2 * (a**2 * d**2 - 2 * a**2 * d * f + a**2 * f**2 - 2 * a * b * c * d +                                2 * a * b * c * f + 2 * a * b * d * e - 2 * a * b * e * f +                                2 * a * c * d * f - 2 * a * c * f**2 - 2 * a * d**2 * e +                                2 * a * d * e * f + b**2 * c**2 - 2 * b**2 * c * e + b**2 * e**2 -                                2 * b * c**2 * f + 2 * b * c * d * e + 2 * b * c * e * f -                                2 * b * d * e**2 + c**2 * f**2 - c**2 * r**2 - 2 * c * d * e * f +                                2 * c * e * r**2 + d**2 * e**2 - d**2 * r**2 + 2 * d * f * r**2 -                                e**2 * r**2 - f**2 * r**2)) +            a * c**2 - 2 * a * c * e + a * e**2 + b * c * d - b * c * f - b * d * e + b * e * f -            c * d * f + c * f**2 + d**2 * e - d * e * f)/(c**2 - 2 * c * e + d**2 - 2 * d * f + e**2 + f**2)
-    ry2 = (d * sqrt(-(c - e)**2 * (a**2 * d**2 - 2 * a**2 * d * f + a**2 * f**2 - 2 * a * b * c * d +                                    2 * a * b * c * f + 2 * a * b * d * e - 2 * a * b * e * f +                                    2 * a * c * d * f - 2 * a * c * f**2 - 2 * a * d**2 * e +                                    2 * a * d * e * f + b**2 * c**2 - 2 * b**2 * c * e + b**2 * e**2 -                                    2 * b * c**2 * f + 2 * b * c * d * e + 2 * b * c * e * f -                                    2 * b * d * e**2 + c**2 * f**2 - c**2 * r**2 - 2 * c * d * e * f +                                    2 * c * e * r**2 + d**2 * e**2 - d**2 * r**2 + 2 * d * f * r**2 -                                    e**2 * r**2 - f**2 * r**2)) -            f * sqrt(-(c - e)**2 * (a**2 * d**2 - 2 * a**2 * d * f + a**2 * f**2 - 2 * a * b * c * d +                                    2 * a * b * c * f + 2 * a * b * d * e - 2 * a * b * e * f +                                    2 * a * c * d * f - 2 * a * c * f**2 - 2 * a * d**2 * e +                                    2 * a * d * e * f + b**2 * c**2 - 2 * b**2 * c * e + b**2 * e**2 -                                    2 * b * c**2 * f + 2 * b * c * d * e + 2 * b * c * e * f -                                    2 * b * d * e**2 + c**2 * f**2 - c**2 * r**2 - 2 * c * d * e * f +                                    2 * c * e * r**2 + d**2 * e**2 - d**2 * r**2 + 2 * d * f * r**2 -                                    e**2 * r**2 - f**2 * r**2)) + a * c**2 * d - a * c**2 * f -            2 * a * c * d * e + 2 * a * c * e * f + a * d * e**2 - a * e**2 * f + b * c * d**2 -            2 * b * c * d * f + b * c * f**2 - b * d**2 * e + 2 * b * d * e * f - b * e * f**2 +            c**3 * f - c**2 * d * e - 2 * c**2 * e * f + 2 * c * d * e**2 + c * e**2 * f -            d * e**3)/((c - e) * (c**2 - 2 * c * e + d**2 - 2 * d * f + e**2 + f**2))
+    rx2 = (sqrt(-(c - e)**2 * (a**2 * d**2 - 2 * a**2 * d * f +                                a**2 * f**2 - 2 * a * b * c * d +                                2 * a * b * c * f + 2 * a * b * d * e -                                2 * a * b * e * f + 2 * a * c * d * f -                                2 * a * c * f**2 - 2 * a * d**2 * e +                                2 * a * d * e * f + b**2 * c**2 -                                2 * b**2 * c * e + b**2 * e**2 -                                2 * b * c**2 * f + 2 * b * c * d * e +                                2 * b * c * e * f - 2 * b * d * e**2 +                                c**2 * f**2 - c**2 * r**2 - 2 * c * d * e * f +                                2 * c * e * r**2 + d**2 * e**2 -                                d**2 * r**2 + 2 * d * f * r**2 -                                e**2 * r**2 - f**2 * r**2)) +            a * c**2 - 2 * a * c * e + a * e**2 + b * c * d -            b * c * f - b * d * e + b * e * f -            c * d * f + c * f**2 +            d**2 * e - d * e * f)/(c**2 - 2 * c * e + d**2 -                                   2 * d * f + e**2 + f**2)
+    ry2 = (d * sqrt(-(c - e)**2 * (a**2 * d**2 - 2 * a**2 * d * f +                                    a**2 * f**2 - 2 * a * b * c * d +                                    2 * a * b * c * f + 2 * a * b * d * e -                                    2 * a * b * e * f +                                    2 * a * c * d * f - 2 * a * c * f**2 -                                    2 * a * d**2 * e + 2 * a * d * e * f +                                    b**2 * c**2 - 2 * b**2 * c * e +                                    b**2 * e**2 - 2 * b * c**2 * f +                                    2 * b * c * d * e + 2 * b * c * e * f -                                    2 * b * d * e**2 + c**2 * f**2 -                                    c**2 * r**2 - 2 * c * d * e * f +                                    2 * c * e * r**2 + d**2 * e**2 -                                    d**2 * r**2 + 2 * d * f * r**2 -                                    e**2 * r**2 - f**2 * r**2)) -            f * sqrt(-(c - e)**2 * (a**2 * d**2 - 2 * a**2 * d * f +                                    a**2 * f**2 - 2 * a * b * c * d +                                    2 * a * b * c * f + 2 * a * b * d * e -                                    2 * a * b * e * f +                                    2 * a * c * d * f - 2 * a * c * f**2 -                                    2 * a * d**2 * e +                                    2 * a * d * e * f + b**2 * c**2 -                                    2 * b**2 * c * e + b**2 * e**2 -                                    2 * b * c**2 * f + 2 * b * c * d * e +                                    2 * b * c * e * f - 2 * b * d * e**2 +                                    c**2 * f**2 - c**2 * r**2 - 2 * c * d * e * f +                                    2 * c * e * r**2 + d**2 * e**2 -                                    d**2 * r**2 + 2 * d * f * r**2 -                                    e**2 * r**2 - f**2 * r**2)) +            a * c**2 * d - a * c**2 * f -            2 * a * c * d * e + 2 * a * c * e * f +            a * d * e**2 - a * e**2 * f + b * c * d**2 -            2 * b * c * d * f + b * c * f**2 - b * d**2 * e +            2 * b * d * e * f - b * e * f**2 +            c**3 * f - c**2 * d * e - 2 * c**2 * e * f +            2 * c * d * e**2 + c * e**2 * f -            d * e**3)/((c - e) * (c**2 - 2 * c * e + d**2 -                                  2 * d * f + e**2 + f**2))
     
     # Одно из них отбрасываем, потому что одна точка уже однозначно принадлежит началу отрезка
     if ((abs(rx1 - c) < eps) and (abs(ry1 - d) < eps)) or ((abs(rx1 - e) < eps) and (abs(ry1 - f) < eps)):
@@ -428,12 +464,12 @@ def create_stein_point(x, y, k1, k2, k3, l):
     print 'Нашли центр описанной окружности с радиусом {} и центром в S1:'.format(r)
     circles = ((a, b ,r),)
     draw(x, y, [a], [b], circle=circles)
-    exp = is_intersect(x[k1], y[k1], x[k2], y[k2], x[k3], y[k3], x[l], y[l])
+    x_stein, y_stein = find_intersection(a, b, x[k3], y[k3], x[l], y[l], r)
+    exp = is_intersect(x[k1], y[k1], x[k2], y[k2], x[k3], y[k3], x_stein, y_stein)
     if exp:
         print 'Check: OK'
-        x_stein, y_stein = find_intersection(a, b, x[k3], y[k3], x[l], y[l], r)
         print 'Нашли положение новой точки Штейнера - S1:'
-        draw(x, y, [x_stein], [y_stein], connect=(k1, k2))
+        draw(x, y, [x_stein], [y_stein], connect=(k1, k2), connect2=(k3, (x_stein, y_stein)))
         x[k3], y[k3] = x_stein, y_stein
         print 'Построили точку Штейнера P{}:'.format(k3+1)
         draw(x, y)
