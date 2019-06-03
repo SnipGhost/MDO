@@ -464,11 +464,29 @@ create_edge_point(x, y, 5, 6)
 create_edge_point(x, y, 7, 8)
 
 
+# In[23]:
+
+def get_simpsons_length(x, y, G):
+    l = len(G) - 1
+    k = G[l][2] - 1
+    x1 = x[k]
+    y1 = y[k]
+    x2 = x[l]
+    y2 = y[l]
+    return sqrt((x1-x2)**2+(y1-y2)**2)
+
+
+# In[24]:
+
+sl = get_simpsons_length(x, y, G1)
+print 'Длина ЛМД по линии Симпсона: {}'.format(sl)
+
+
 # <div style="page-break-after: always;"></div>
 
 # ### Обратный ход алгоритма
 
-# In[23]:
+# In[25]:
 
 def create_stein_point(x, y, k1, k2, k3, l):
     k1 -= 1
@@ -494,29 +512,29 @@ def create_stein_point(x, y, k1, k2, k3, l):
         raise ArithmeticError('Check failed')
 
 
-# In[24]:
+# In[26]:
 
 create_stein_point(x, y, 7, 8, 10, 9)
 
 
-# In[25]:
+# In[27]:
 
 create_stein_point(x, y, 5, 6, 9, 10)
 
 
-# In[26]:
+# In[28]:
 
 create_stein_point(x, y, 3, 4, 8, 10)
 
 
-# In[27]:
+# In[29]:
 
 create_stein_point(x, y, 1, 2, 7, 10)
 
 
 # ### Подсчет длины ЛМД
 
-# In[28]:
+# In[30]:
 
 def calculate_path_len(x, y, G):
     ap = []
@@ -531,7 +549,7 @@ def calculate_path_len(x, y, G):
     return path_len
 
 
-# In[29]:
+# In[31]:
 
 loc_len = calculate_path_len(x, y, G1)
 print 'Длина локально минимального дерева: {}'.format(loc_len)
@@ -539,7 +557,7 @@ print 'Длина локально минимального дерева: {}'.fo
 
 # ## Общее решение
 
-# In[30]:
+# In[32]:
 
 def solve(l, G):
     
@@ -551,6 +569,9 @@ def solve(l, G):
 
     for i in range(origin_len, len(G), 1):
         create_edge_point(x, y, G[i][0], G[i][1])
+        
+    sl = get_simpsons_length(x, y, G)
+    print 'Длина ЛМД по линии Симпсона: {}'.format(sl)
 
     for i in reversed(range(origin_len, len(G), 1)):
         create_stein_point(x, y, G[i][0], G[i][1], i+1, G[i][2])
@@ -558,7 +579,7 @@ def solve(l, G):
     print 'Длина локально минимального дерева: {}'.format(calculate_path_len(x, y, G))
 
 
-# In[31]:
+# In[33]:
 
 draw.max_x = 10
 draw.max_y = 10
