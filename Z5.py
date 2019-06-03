@@ -290,7 +290,7 @@ def find_vertex(a, b, c, d, eps=0.000001):
     # Находим 2 решения системы уравнений
     
     # Точки совпали
-    if abs(b-d) < eps and abs(b-d) < eps:
+    if abs(b-d) < eps and abs(a-c) < eps:
         raise ArithmeticException('FindVertex: a == b == c == d')
     
     # Вырожденный случай: b == d
@@ -336,6 +336,21 @@ def is_intersect(ax1, ay1, ax2, ay2, bx1, by1, bx2, by2):
     return (v1*v2 < 0) and (v3*v4 < 0)
 
 
+# #### Определение факта принадлежности точки M(mx, my) отрезку AB(x1, y1, x2, y2)
+# 
+# При условии что точка M уже принадлежит прямой AB (установлено по ходу решения)
+
+# In[15]:
+
+def is_belongs(mx, my, x1, y1, x2, y2):
+    ax = x1 - mx
+    ay = y1 - my
+    bx = x2 - mx
+    by = y2 - my
+    dot = ax * bx + ay * by
+    return (dot <= 0)
+
+
 # #### Поиск пересечения окружности (задана: a,b,r) и отрезка (задан: c,d,e,f)
 # 
 # Для решения подзадачи решим уравнения окружности и прямой:
@@ -354,7 +369,7 @@ def is_intersect(ax1, ay1, ax2, ay2, bx1, by1, bx2, by2):
 # 
 # `eps` - заданная точность определения координат
 
-# In[15]:
+# In[16]:
 
 def find_intersection(a, b, c, d, e, f, r, eps=0.001):
     # Находим перое решение системы уравнений:
@@ -377,7 +392,7 @@ def find_intersection(a, b, c, d, e, f, r, eps=0.001):
 # `xs, ys` - точка-кандидат на новую граничную  
 # `ax, ay, bx, by` - основание равностороннего треугольника
 
-# In[16]:
+# In[17]:
 
 def check_edge_point(x, y, xs, ys, ax, ay, bx, by):
     
@@ -405,7 +420,7 @@ def check_edge_point(x, y, xs, ys, ax, ay, bx, by):
 
 # ### Прямой ход алгоритма
 
-# In[17]:
+# In[18]:
 
 # Добавить граничную точку в массив данных
 def create_edge_point(x, y, k1, k2):
@@ -429,22 +444,22 @@ def create_edge_point(x, y, k1, k2):
     draw(x, y, connect=(k1, k2))
 
 
-# In[18]:
+# In[19]:
 
 create_edge_point(x, y, 1, 2)
 
 
-# In[19]:
+# In[20]:
 
 create_edge_point(x, y, 3, 4)
 
 
-# In[20]:
+# In[21]:
 
 create_edge_point(x, y, 5, 6)
 
 
-# In[21]:
+# In[22]:
 
 create_edge_point(x, y, 7, 8)
 
@@ -453,7 +468,7 @@ create_edge_point(x, y, 7, 8)
 
 # ### Обратный ход алгоритма
 
-# In[22]:
+# In[23]:
 
 def create_stein_point(x, y, k1, k2, k3, l):
     k1 -= 1
@@ -465,11 +480,13 @@ def create_stein_point(x, y, k1, k2, k3, l):
     circles = ((a, b ,r),)
     draw(x, y, [a], [b], circle=circles)
     x_stein, y_stein = find_intersection(a, b, x[k3], y[k3], x[l], y[l], r)
-    exp = is_intersect(x[k1], y[k1], x[k2], y[k2], x[k3], y[k3], x_stein, y_stein)
-    if exp:
+    # Проверяем условия построения ЛМД
+    exp1 = is_intersect(x[k1], y[k1], x[k2], y[k2], x[k3], y[k3], x[l], y[l])
+    exp2 = is_belongs(x_stein, y_stein, x[k3], y[k3], x[l], y[l])
+    print 'Нашли положение новой точки Штейнера - S1:'
+    draw(x, y, [x_stein], [y_stein], connect=(k1, k2), connect2=(k3, (x_stein, y_stein)))
+    if exp1 and exp2:
         print 'Check: OK'
-        print 'Нашли положение новой точки Штейнера - S1:'
-        draw(x, y, [x_stein], [y_stein], connect=(k1, k2), connect2=(k3, (x_stein, y_stein)))
         x[k3], y[k3] = x_stein, y_stein
         print 'Построили точку Штейнера P{}:'.format(k3+1)
         draw(x, y)
@@ -477,29 +494,29 @@ def create_stein_point(x, y, k1, k2, k3, l):
         raise ArithmeticError('Check failed')
 
 
-# In[23]:
+# In[24]:
 
 create_stein_point(x, y, 7, 8, 10, 9)
 
 
-# In[24]:
+# In[25]:
 
 create_stein_point(x, y, 5, 6, 9, 10)
 
 
-# In[25]:
+# In[26]:
 
 create_stein_point(x, y, 3, 4, 8, 10)
 
 
-# In[26]:
+# In[27]:
 
 create_stein_point(x, y, 1, 2, 7, 10)
 
 
 # ### Подсчет длины ЛМД
 
-# In[27]:
+# In[28]:
 
 def calculate_path_len(x, y, G):
     ap = []
@@ -514,7 +531,7 @@ def calculate_path_len(x, y, G):
     return path_len
 
 
-# In[28]:
+# In[29]:
 
 loc_len = calculate_path_len(x, y, G1)
 print 'Длина локально минимального дерева: {}'.format(loc_len)
@@ -522,7 +539,7 @@ print 'Длина локально минимального дерева: {}'.fo
 
 # ## Общее решение
 
-# In[29]:
+# In[30]:
 
 def solve(l, G):
     
@@ -541,7 +558,7 @@ def solve(l, G):
     print 'Длина локально минимального дерева: {}'.format(calculate_path_len(x, y, G))
 
 
-# In[30]:
+# In[31]:
 
 draw.max_x = 10
 draw.max_y = 10
